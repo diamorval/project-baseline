@@ -1,0 +1,270 @@
+/* ============================================================================
+   Diametral — Keycloak login theme
+   Restyles the classic Keycloak login pages into the Diametral language: flat,
+   1px rules, no border-radius, no shadows, Geist body + serif headings, black
+   primary action, accent links. Selectors cover both the older (PatternFly 3:
+   .form-control/.btn) and newer (PatternFly 4: .pf-c-*) markup so it works across
+   Keycloak versions.
+   ============================================================================ */
+/* Geist (body) + Fraunces (the free title/serif voice — matches the app's
+   heading font so login and app look consistent). Hold an Ufficio license?
+   self-host Ufficio-300.woff2 + add an @font-face; the stack already prefers it. */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400&family=Geist:wght@300;400;500;600&display=swap");
+
+/* Ufficio — self-hosted Diametral brand title font (licensed). The --ds-serif
+   stack below prefers it; Fraunces (above) is the fallback. */
+@font-face {
+  font-family: "Ufficio";
+  src: url("../fonts/Ufficio-300.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --ds-ink: #161616;
+  --ds-soft: #3a3a3c;
+  --ds-faint: #6c6f7d;
+  --ds-rule: #e5e5e5;
+  --ds-bg: #f4f4f5;
+  --ds-surface: #ffffff;
+  --ds-accent: #ff2a00;
+  --ds-accent-ink: #db2400;
+  --ds-sans: "Geist", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --ds-serif: "Ufficio", "Fraunces", Georgia, "Times New Roman", serif;
+}
+
+/* ---- Page ---------------------------------------------------------------- */
+html { font-size: 16px; }
+body.login-pf,
+.login-pf body,
+body {
+  background: var(--ds-bg) !important;
+  font-family: var(--ds-sans);
+  color: var(--ds-ink);
+}
+.login-pf-page,
+.login-pf-page .login-pf-page-header { background: transparent; }
+/* Kill the classic background image. */
+.login-pf body { background-image: none !important; }
+
+/* ---- Header / wordmark --------------------------------------------------- */
+#kc-header,
+.login-pf-page-header { margin-bottom: 18px; text-align: center; }
+#kc-header-wrapper,
+.login-pf-page-header h1 {
+  font-family: var(--ds-serif);
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 1.1;
+  letter-spacing: -0.3px;
+  color: var(--ds-ink);
+  text-transform: none;
+  padding: 0;
+}
+
+/* ---- Card ---------------------------------------------------------------- */
+/* Border ONLY the outer card; clear inner wrappers so there's a single clean box. */
+.login-pf-page .card-pf {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-rule);
+  border-top: 2px solid var(--ds-accent); /* accent rule — a brand marker */
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 32px 30px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+#kc-content,
+#kc-content-wrapper,
+#kc-form,
+#kc-form-wrapper {
+  background: transparent;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0;
+}
+
+#kc-page-title,
+#kc-content h1 {
+  font-family: var(--ds-serif);
+  font-weight: 400;
+  font-size: 22px;
+  color: var(--ds-ink);
+  margin: 0 0 18px;
+}
+
+/* ---- Form fields --------------------------------------------------------- */
+label,
+.pf-c-form__label,
+.control-label {
+  font-family: var(--ds-sans);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ds-faint);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="tel"],
+select,
+textarea,
+.pf-c-form-control,
+.form-control {
+  font-family: var(--ds-sans);
+  font-size: 15px;
+  color: var(--ds-ink);
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-rule);
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 10px 12px;
+  height: auto;
+  width: 100%;
+}
+input:focus,
+select:focus,
+textarea:focus,
+.pf-c-form-control:focus,
+.form-control:focus {
+  border-color: var(--ds-ink);
+  outline: 2px solid rgba(22, 22, 22, 0.12);
+  outline-offset: 0;
+}
+input::placeholder { color: var(--ds-faint); }
+
+/* Password visibility toggle */
+.pf-c-button.pf-m-control,
+.kc-login-tooltip { border-radius: 0 !important; }
+.pf-c-input-group { border-radius: 0; }
+
+/* ---- Buttons ------------------------------------------------------------- */
+.btn,
+.pf-c-button {
+  font-family: var(--ds-sans);
+  font-weight: 500;
+  font-size: 15px;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 11px 18px;
+}
+/* Primary action — solid black, full width. */
+.btn-primary,
+.pf-c-button.pf-m-primary,
+#kc-login,
+input[type="submit"].btn-primary {
+  background: var(--ds-ink) !important;
+  border: 1px solid var(--ds-ink) !important;
+  color: #fff !important;
+}
+.btn-primary:hover,
+.pf-c-button.pf-m-primary:hover,
+#kc-login:hover { background: #000 !important; border-color: #000 !important; }
+.btn-block,
+.pf-c-button.pf-m-block,
+#kc-login { width: 100%; }
+/* Secondary / default buttons — outlined. */
+.btn-default,
+.pf-c-button.pf-m-secondary {
+  background: var(--ds-surface) !important;
+  border: 1px solid var(--ds-ink) !important;
+  color: var(--ds-ink) !important;
+}
+
+/* ---- Links --------------------------------------------------------------- */
+a,
+#kc-registration a,
+#kc-info-wrapper a,
+.login-pf-page a { color: var(--ds-accent-ink); }
+a:hover { color: var(--ds-accent); }
+
+/* ---- Options row / register / info --------------------------------------- */
+#kc-form-options,
+#kc-registration,
+#kc-info,
+.login-pf-page #kc-info-wrapper {
+  font-family: var(--ds-sans);
+  font-size: 13px;
+  color: var(--ds-faint);
+}
+#kc-form-options .checkbox label { color: var(--ds-soft); font-size: 13px; letter-spacing: 0; }
+#kc-info-wrapper {
+  background: var(--ds-bg);
+  border: 1px solid var(--ds-rule);
+  border-radius: 0;
+  margin-top: 18px;
+}
+
+/* ---- Alerts / feedback --------------------------------------------------- */
+.alert,
+.pf-c-alert {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border: 1px solid var(--ds-rule);
+  border-left-width: 3px;
+  font-family: var(--ds-sans);
+  font-size: 14px;
+}
+.alert-error, .pf-c-alert.pf-m-danger { border-left-color: var(--ds-accent-ink); }
+.alert-warning, .pf-c-alert.pf-m-warning { border-left-color: #b8400b; }
+.alert-success, .pf-c-alert.pf-m-success { border-left-color: #2e7d4f; }
+.alert-info, .pf-c-alert.pf-m-info { border-left-color: #0e6a82; }
+.kc-feedback-text { color: var(--ds-soft); }
+
+/* ---- Special pages (all inherited from the keycloak parent) -------------- */
+/* select-authenticator.ftl — authenticator choice tiles */
+.select-auth-box-parent,
+.select-auth-box-arrow ~ *,
+.pf-c-tile {
+  border: 1px solid var(--ds-rule) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.select-auth-box-parent:hover { border-color: var(--ds-ink) !important; }
+.select-auth-box-headers, .select-auth-box-desc { font-family: var(--ds-sans); }
+
+/* login-config-totp.ftl — TOTP/OTP setup (QR + manual secret) */
+#kc-totp-secret-key,
+.kc-totp-secret-key {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  background: var(--ds-bg);
+  border: 1px solid var(--ds-rule);
+  padding: 8px 10px;
+  display: inline-block;
+}
+#kc-totp-secret-qr-code, .qr-code { border: 1px solid var(--ds-rule); }
+ol#kc-totp-settings, .kc-totp-settings { font-family: var(--ds-sans); color: var(--ds-soft); }
+
+/* login-recovery-authn-code-config.ftl — recovery codes list */
+#kc-recovery-codes-list,
+ol.kc-recovery-codes-list {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  border: 1px solid var(--ds-rule);
+  background: var(--ds-bg);
+  padding: 14px 16px 14px 36px;
+}
+#kc-recovery-codes-list li { padding: 3px 0; letter-spacing: 0.06em; }
+
+/* login-oauth-grant.ftl — consent screen list */
+#kc-oauth ul, .kc-oauth-grant-list { list-style: none; padding: 0; }
+#kc-oauth li, .kc-oauth-grant-list li {
+  border-bottom: 1px solid var(--ds-rule-soft, #f0f0f0);
+  padding: 8px 0;
+  font-family: var(--ds-sans);
+  color: var(--ds-soft);
+}
+
+/* ---- Misc: language picker, footer -------------------------------------- */
+#kc-locale ul {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-rule);
+  border-radius: 0;
+  box-shadow: none;
+}
+#kc-locale a { color: var(--ds-soft); }
+.pf-c-dropdown__menu { border-radius: 0 !important; box-shadow: none !important; border: 1px solid var(--ds-rule); }

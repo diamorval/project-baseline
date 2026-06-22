@@ -1,0 +1,12 @@
+/* Ufficio — the Diametral brand title typeface (self-hosted, licensed; same
+   file the diametral.com site uses). The DS title token (--ds-font-title)
+   already prefers "Ufficio", so registering this face makes every heading
+   render in the real brand font. Fraunces (loaded in index.html) stays as the
+   graceful fallback. */
+@font-face {
+  font-family: "Ufficio";
+  src: url("/fonts/Ufficio-300.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}

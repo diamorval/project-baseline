@@ -1,0 +1,24 @@
+# Node
+node_modules/
+frontend/dist/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# Env overrides (the committed frontend/.env holds only public localhost URLs)
+.env.local
+*.env.local
+
+# Claude Code — personal/local settings (the shared .claude/settings.json IS committed)
+.claude/settings.local.json
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

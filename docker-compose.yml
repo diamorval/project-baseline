@@ -1,0 +1,108 @@
+name: hackathon
+
+services:
+  # --- Frontend: Vite + React + TS, themed with the Diametral design system ---
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_KEYCLOAK_URL: http://localhost:8080
+      VITE_KEYCLOAK_REALM: hackathon
+      VITE_KEYCLOAK_CLIENT_ID: web
+      VITE_API_URL: http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # keep the image's installed deps over the bind mount
+    depends_on:
+      - backend
+      - keycloak
+
+  # --- Backend: FastAPI, validates Keycloak JWTs ---
+  backend:
+    build: ./backend
+    command:
+      ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg2://app:app@app-db:5432/app
+      # Internal URL (compose network) to fetch the realm's signing keys (JWKS).
+      KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+      # Public URL the browser uses — must equal the token `iss` host.
+      KEYCLOAK_ISSUER_URL: http://localhost:8080
+      KEYCLOAK_REALM: hackathon
+      KEYCLOAK_AUDIENCE: hackathon-api
+      CORS_ORIGINS: http://localhost:5173
+    volumes:
+      - ./backend:/app
+    depends_on:
+      app-db:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+
+  # --- Application database ---
+  app-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    ports:
+      - "5432:5432"
+    volumes:
+      - app-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  # --- Keycloak: realm imported on first boot, Diametral login/email theme ---
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2
+    command:
+      - start-dev
+      - --import-realm
+      # Dev: don't cache themes/templates so theme edits show on reload.
+      - --spi-theme-cache-themes=false
+      - --spi-theme-cache-templates=false
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      # Fixes the issuer/redirect host so it matches what the browser uses.
+      KC_HOSTNAME: http://localhost:8080
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      - ./keycloak/themes/diametral:/opt/keycloak/themes/diametral:ro
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+
+  # --- Keycloak database ---
+  keycloak-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+      POSTGRES_DB: keycloak
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  app-db-data:
+  keycloak-db-data:
