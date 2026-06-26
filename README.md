@@ -1,10 +1,14 @@
-# Hackathon whiteapp
+# Project Baseline
 
-A ready-to-fork starter for hackathons: a **React** frontend on the
+A ready-to-fork project base: a **React** frontend on the
 [Diametral design system](https://github.com/LittleBigCode/design-system), a
 **FastAPI** backend, **Postgres**, and **Keycloak** (with its own Postgres) for
 authentication — all wired together and started with a single
 `docker compose up`. Keycloak's login and emails are themed with Diametral too.
+
+It's intentionally minimal: real auth, a CRUD slice, and a themed shell, with
+nothing project-specific baked in. Clone it, rename the realm if you like, and
+start building.
 
 ```
 ┌────────────┐   Bearer token    ┌────────────┐      SQL      ┌────────────┐
@@ -49,7 +53,7 @@ Sign in with one of the seeded users:
 ## What's inside
 
 ```
-hackathon/
+project-baseline/
 ├── docker-compose.yml          # the 5 services
 ├── Makefile                    # up / down / logs / clean
 ├── frontend/                   # Vite + React + TS
@@ -75,7 +79,7 @@ hackathon/
 │   │   └── routers/{me,items}.py
 │   └── Dockerfile
 └── keycloak/
-    ├── realm-export.json       # the `hackathon` realm (clients, roles, users)
+    ├── realm-export.json       # the `baseline` realm (clients, roles, users)
     └── themes/diametral/       # the Diametral login + email theme
 ```
 
@@ -104,8 +108,8 @@ the **browser** URL, so the backend:
 
 ### Audience
 
-The `web` client has an audience mapper that adds `hackathon-api` to every
-access token; the backend requires it (`KEYCLOAK_AUDIENCE=hackathon-api`). Set
+The `web` client has an audience mapper that adds `baseline-api` to every
+access token; the backend requires it (`KEYCLOAK_AUDIENCE=baseline-api`). Set
 that env var to `""` to disable the audience check.
 
 ## Developing

@@ -64,7 +64,7 @@ export default function App() {
 
   return (
     <ConsoleLayout
-      brand={{ name: "Hackathon", sub: "Whiteapp" }}
+      brand={{ name: "Baseline", sub: "Starter" }}
       nav={NAV}
       active={activeId(pathname)}
       onNavigate={onNavigate}

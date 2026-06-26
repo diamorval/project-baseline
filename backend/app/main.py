@@ -13,13 +13,13 @@ from .routers import items, me
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Hackathon convenience: create tables on startup. Swap for Alembic when the
+    # Convenience: create tables on startup. Swap for Alembic when the
     # schema starts to evolve.
     Base.metadata.create_all(bind=engine)
     yield
 
 
-app = FastAPI(title="Hackathon API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Baseline API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

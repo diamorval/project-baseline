@@ -5,7 +5,7 @@ this file is the dense, actionable version. Keep it accurate when things change.
 
 ## What this is
 
-A hackathon starter ("whiteapp"): a **React + Diametral design system** frontend,
+A project starter base: a **React + Diametral design system** frontend,
 a **FastAPI** backend, **Keycloak** auth, and **two Postgres** DBs — everything
 comes up with one `docker compose up`. Keycloak's login/emails are themed with
 Diametral too.
@@ -33,7 +33,7 @@ Diametral too.
   **`app/auth.py`** (Keycloak JWT validation — the core), `app/config.py`
   (pydantic-settings), `app/database.py`, `app/models.py`, `app/schemas.py`,
   `app/routers/`.
-- `keycloak/` — `realm-export.json` (realm `hackathon`: `web` client, roles,
+- `keycloak/` — `realm-export.json` (realm `baseline`: `web` client, roles,
   users) and `themes/diametral/` (vendored Diametral login/email theme).
 
 ## Auth — how it fits together
@@ -49,7 +49,7 @@ Diametral too.
   (compose network) but validates `iss` against
   `KEYCLOAK_ISSUER_URL=http://localhost:8080` (the host the browser uses).
   `KC_HOSTNAME=http://localhost:8080` pins the issuer so both sides agree.
-- Token `aud` is `hackathon-api`, added by an audience mapper on the `web` client;
+- Token `aud` is `baseline-api`, added by an audience mapper on the `web` client;
   the backend requires it via `KEYCLOAK_AUDIENCE` (set `""` to disable).
 
 ## Design system (Diametral)
@@ -81,7 +81,7 @@ Diametral too.
 ## Verify (smoke test) — see also `/smoke`
 
 ```bash
-TOKEN=$(curl -s -X POST http://localhost:8080/realms/hackathon/protocol/openid-connect/token \
+TOKEN=$(curl -s -X POST http://localhost:8080/realms/baseline/protocol/openid-connect/token \
   -d grant_type=password -d client_id=web -d username=demo -d password=demo \
   | python3 -c 'import sys,json;print(json.load(sys.stdin)["access_token"])')
 curl -s http://localhost:8000/api/me -H "Authorization: Bearer $TOKEN"    # 200 + user JSON
