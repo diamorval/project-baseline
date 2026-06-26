@@ -1,0 +1,35 @@
+# Dependabot — opens version-bump PRs that CI (quality · tests · typecheck) gates.
+# Pairs with the advisory pip-audit/npm audit job in ci.yml: that job *detects*
+# CVEs; Dependabot *fixes* them via reviewable PRs. Security updates (CVE-driven,
+# out-of-band) require "Dependabot security updates" enabled in repo Settings →
+# Code security. Bumps are grouped so routine updates land as one PR, not many.
+version: 2
+updates:
+  # Backend Python deps (requirements.txt lives in backend/).
+  - package-ecosystem: pip
+    directory: /backend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      python-deps:
+        patterns: ["*"]
+
+  # Frontend npm deps.
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      npm-deps:
+        patterns: ["*"]
+
+  # Keep GitHub Actions (actions/checkout, setup-python, setup-node, …) current.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      gha:
+        patterns: ["*"]

@@ -84,9 +84,7 @@ def _signing_key(token: str) -> dict:
     if key is None:  # unknown kid — keys may have rotated, refresh once
         key = find(_get_jwks(force=True))
     if key is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Unknown signing key."
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unknown signing key.")
     return key
 
 

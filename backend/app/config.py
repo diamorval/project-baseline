@@ -1,10 +1,10 @@
 """Application settings, loaded from environment variables.
 
-Mirrors the recrutauto backend's split between an *internal* Keycloak URL
-(server-to-server, used to fetch the JWKS signing keys over the Docker network)
-and a *public* issuer URL (the host the browser uses, which is what ends up in
-the token's `iss` claim). Keeping them separate is what makes JWT validation
-work across the container boundary.
+Splits the Keycloak config into an *internal* URL (server-to-server, used to
+fetch the JWKS signing keys over the Docker network) and a *public* issuer URL
+(the host the browser uses, which is what ends up in the token's `iss` claim).
+Keeping them separate is what makes JWT validation work across the container
+boundary.
 """
 
 from functools import cached_property
@@ -24,12 +24,12 @@ class Settings(BaseSettings):
     # Public base URL of Keycloak (what the browser uses) — must match the token
     # `iss` claim. Token issuer = f"{keycloak_issuer_url}/realms/{realm}".
     keycloak_issuer_url: str = "http://localhost:8080"
-    keycloak_realm: str = "hackathon"
+    keycloak_realm: str = "baseline"
     keycloak_algorithm: str = "RS256"
     # Audience required in the token. The realm's `web` client has an audience
-    # mapper that adds "hackathon-api" to every access token. Set to "" to
+    # mapper that adds "baseline-api" to every access token. Set to "" to
     # disable the audience check entirely.
-    keycloak_audience: str = "hackathon-api"
+    keycloak_audience: str = "baseline-api"
 
     # --- CORS (comma-separated list of allowed origins) ---
     cors_origins: str = "http://localhost:5173"

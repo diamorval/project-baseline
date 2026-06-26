@@ -31,7 +31,7 @@ function activeId(pathname: string): string {
   const match = [...ROUTES]
     .sort((a, b) => b.path.length - a.path.length)
     .find((r) =>
-      r.path === "/" ? pathname === "/" : pathname.startsWith(r.path)
+      r.path === "/" ? pathname === "/" : pathname.startsWith(r.path),
     );
   return match?.id ?? "dashboard";
 }
@@ -41,7 +41,9 @@ function initialsOf(name: string | undefined): string {
   const src = (name ?? "?").trim();
   const parts = src.split(/\s+/).filter(Boolean);
   const raw =
-    parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : src.slice(0, 2);
+    parts.length > 1
+      ? parts[0][0] + parts[parts.length - 1][0]
+      : src.slice(0, 2);
   return raw.toUpperCase();
 }
 
@@ -64,7 +66,7 @@ export default function App() {
 
   return (
     <ConsoleLayout
-      brand={{ name: "Hackathon", sub: "Whiteapp" }}
+      brand={{ name: "Baseline", sub: "Starter" }}
       nav={NAV}
       active={activeId(pathname)}
       onNavigate={onNavigate}

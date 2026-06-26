@@ -1,5 +1,5 @@
 {
-  "name": "hackathon-frontend",
+  "name": "baseline-frontend",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -18,8 +18,8 @@
   "devDependencies": {
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "@vitejs/plugin-react": "^4",
+    "@vitejs/plugin-react": "^5",
     "typescript": "^5",
-    "vite": "^5"
+    "vite": "^7"
   }
 }

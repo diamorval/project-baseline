@@ -63,7 +63,9 @@ export default function Items() {
 
   const toggleDone = async (item: Item) => {
     setItems((cur) =>
-      cur ? cur.map((i) => (i.id === item.id ? { ...i, done: !i.done } : i)) : cur
+      cur
+        ? cur.map((i) => (i.id === item.id ? { ...i, done: !i.done } : i))
+        : cur,
     );
     try {
       await api<Item>(`/api/items/${item.id}`, {
@@ -96,7 +98,11 @@ export default function Items() {
       />
 
       {error && (
-        <Callout type="danger" heading="Something went wrong" style={{ marginBottom: 16 }}>
+        <Callout
+          type="danger"
+          heading="Something went wrong"
+          style={{ marginBottom: 16 }}
+        >
           {error}
         </Callout>
       )}
@@ -130,7 +136,14 @@ export default function Items() {
 
       <div style={{ marginTop: 24 }}>
         {items === null ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: 24 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: 24,
+            }}
+          >
             <Spinner inline /> Loading items…
           </div>
         ) : items.length === 0 ? (
@@ -142,9 +155,13 @@ export default function Items() {
           <div style={{ display: "grid", gap: 10 }}>
             {items.map((item) => (
               <Card key={item.id}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+                <div
+                  style={{ display: "flex", alignItems: "flex-start", gap: 16 }}
+                >
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 10 }}
+                    >
                       <strong
                         style={{
                           textDecoration: item.done ? "line-through" : "none",
@@ -158,7 +175,12 @@ export default function Items() {
                       </Tag>
                     </div>
                     {item.description && (
-                      <p style={{ margin: "6px 0 0", color: "var(--ds-ink-soft)" }}>
+                      <p
+                        style={{
+                          margin: "6px 0 0",
+                          color: "var(--ds-ink-soft)",
+                        }}
+                      >
                         {item.description}
                       </p>
                     )}

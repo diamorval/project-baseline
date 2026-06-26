@@ -17,11 +17,7 @@ def list_items(
     db: Session = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ) -> list[Item]:
-    stmt = (
-        select(Item)
-        .where(Item.owner_sub == user.sub)
-        .order_by(Item.created_at.desc())
-    )
+    stmt = select(Item).where(Item.owner_sub == user.sub).order_by(Item.created_at.desc())
     return list(db.scalars(stmt).all())
 
 
@@ -46,9 +42,7 @@ def create_item(
 def _get_owned(item_id: int, db: Session, user: CurrentUser) -> Item:
     item = db.get(Item, item_id)
     if item is None or item.owner_sub != user.sub:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Item not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
     return item
 
 

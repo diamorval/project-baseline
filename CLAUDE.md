@@ -5,7 +5,7 @@ this file is the dense, actionable version. Keep it accurate when things change.
 
 ## What this is
 
-A hackathon starter ("whiteapp"): a **React + Diametral design system** frontend,
+A project starter base: a **React + Diametral design system** frontend,
 a **FastAPI** backend, **Keycloak** auth, and **two Postgres** DBs — everything
 comes up with one `docker compose up`. Keycloak's login/emails are themed with
 Diametral too.
@@ -33,8 +33,10 @@ Diametral too.
   **`app/auth.py`** (Keycloak JWT validation — the core), `app/config.py`
   (pydantic-settings), `app/database.py`, `app/models.py`, `app/schemas.py`,
   `app/routers/`.
-- `keycloak/` — `realm-export.json` (realm `hackathon`: `web` client, roles,
+- `keycloak/` — `realm-export.json` (realm `baseline`: `web` client, roles,
   users) and `themes/diametral/` (vendored Diametral login/email theme).
+- **Per-module deep dives**: `backend/CLAUDE.md` and `frontend/CLAUDE.md` (the
+  dense guides for working inside each service).
 
 ## Auth — how it fits together
 
@@ -49,7 +51,7 @@ Diametral too.
   (compose network) but validates `iss` against
   `KEYCLOAK_ISSUER_URL=http://localhost:8080` (the host the browser uses).
   `KC_HOSTNAME=http://localhost:8080` pins the issuer so both sides agree.
-- Token `aud` is `hackathon-api`, added by an audience mapper on the `web` client;
+- Token `aud` is `baseline-api`, added by an audience mapper on the `web` client;
   the backend requires it via `KEYCLOAK_AUDIENCE` (set `""` to disable).
 
 ## Design system (Diametral)
@@ -78,14 +80,32 @@ Diametral too.
   (no Alembic), so a schema change only applies on a fresh DB — `make clean` to
   recreate app-db. Introduce Alembic before the schema matters.
 
+## Test, gates & releases
+
+- `make test` — backend pytest suite (one-off container; `backend/tests/`). CI
+  runs it on every push/PR.
+- **Git hooks** — after cloning, run `pre-commit install --hook-type pre-commit
+  --hook-type pre-push --hook-type commit-msg`. Commit-time: ruff + prettier +
+  gitleaks. Pre-push: backend byte-compile + `tsc -b`. Commit-msg: Conventional
+  Commits (commitizen). `no-commit-to-branch` blocks direct commits to `main`.
+- **CI** — `.github/workflows/ci.yml` (quality · tests · typecheck · commits ·
+  advisory audit) re-runs the local gates as the authoritative server check.
+- **Versioning** — `make release` (`cz bump`) sets the version across `.cz.toml`,
+  `frontend/package.json`, `backend/app/main.py`, regenerates `CHANGELOG.md`, and
+  tags — all from the commit history. Publishing the tag is CD (not wired).
+- **Env** — `make init` copies `.env.example` → root `.env` (gitignored);
+  `docker-compose.yml` reads it via `${VAR:-default}`, and `.envrc` (direnv)
+  loads it into your shell. `frontend/.env` (committed) still holds public
+  `VITE_*` only.
+
 ## Verify (smoke test) — see also `/smoke`
 
 ```bash
-TOKEN=$(curl -s -X POST http://localhost:8080/realms/hackathon/protocol/openid-connect/token \
+TOKEN=$(curl -s -X POST http://localhost:8080/realms/baseline/protocol/openid-connect/token \
   -d grant_type=password -d client_id=web -d username=demo -d password=demo \
   | python3 -c 'import sys,json;print(json.load(sys.stdin)["access_token"])')
 curl -s http://localhost:8000/api/me -H "Authorization: Bearer $TOKEN"    # 200 + user JSON
-curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8000/api/me      # 403 (no token)
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8000/api/me      # 401 (no token)
 ```
 
 ## Gotchas

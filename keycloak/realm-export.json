@@ -1,7 +1,7 @@
 {
-  "realm": "hackathon",
+  "realm": "baseline",
   "enabled": true,
-  "displayName": "Hackathon",
+  "displayName": "Baseline",
   "sslRequired": "none",
   "registrationAllowed": true,
   "registrationEmailAsUsername": false,
@@ -24,7 +24,7 @@
   "clients": [
     {
       "clientId": "web",
-      "name": "Hackathon Web (SPA)",
+      "name": "Baseline Web (SPA)",
       "description": "Public SPA client used by the React frontend (Authorization Code + PKCE).",
       "enabled": true,
       "protocol": "openid-connect",
@@ -43,12 +43,12 @@
       },
       "protocolMappers": [
         {
-          "name": "hackathon-api-audience",
+          "name": "baseline-api-audience",
           "protocol": "openid-connect",
           "protocolMapper": "oidc-audience-mapper",
           "consentRequired": false,
           "config": {
-            "included.custom.audience": "hackathon-api",
+            "included.custom.audience": "baseline-api",
             "access.token.claim": "true",
             "id.token.claim": "false"
           }
@@ -61,7 +61,7 @@
       "username": "demo",
       "enabled": true,
       "emailVerified": true,
-      "email": "demo@hackathon.test",
+      "email": "demo@baseline.test",
       "firstName": "Demo",
       "lastName": "User",
       "credentials": [{ "type": "password", "value": "demo", "temporary": false }],
@@ -71,7 +71,7 @@
       "username": "admin",
       "enabled": true,
       "emailVerified": true,
-      "email": "admin@hackathon.test",
+      "email": "admin@baseline.test",
       "firstName": "Admin",
       "lastName": "User",
       "credentials": [{ "type": "password", "value": "admin", "temporary": false }],

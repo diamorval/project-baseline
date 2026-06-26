@@ -23,6 +23,4 @@ class Item(Base):
     done: Mapped[bool] = mapped_column(default=False)
     owner_sub: Mapped[str] = mapped_column(String(64), index=True)
     owner_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

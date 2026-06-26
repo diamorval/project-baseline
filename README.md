@@ -1,10 +1,13 @@
-# Hackathon whiteapp
+# Project Baseline
 
-A ready-to-fork starter for hackathons: a **React** frontend on the
+A ready-to-fork project base: a **React** frontend on the
 [Diametral design system](https://github.com/LittleBigCode/design-system), a
 **FastAPI** backend, **Postgres**, and **Keycloak** (with its own Postgres) for
 authentication — all wired together and started with a single
 `docker compose up`. Keycloak's login and emails are themed with Diametral too.
+
+It's intentionally minimal: real auth, a CRUD slice, and a themed shell, with
+nothing project-specific baked in. Clone it, `make init`, and start building.
 
 ```
 ┌────────────┐   Bearer token    ┌────────────┐      SQL      ┌────────────┐
@@ -23,8 +26,18 @@ authentication — all wired together and started with a single
 
 ## Quick start
 
+First, personalise the project — `make init` checks prerequisites, renames
+everything to your project, optionally resets git history, and offers to boot
+the stack:
+
 ```bash
-docker compose up --build      # or: make up
+make init                      # asks for a name, renames everything, offers to boot
+```
+
+Already happy with the defaults, or coming back later? Just start it:
+
+```bash
+make up                        # or: docker compose up --build
 ```
 
 First boot takes a minute or two (image builds + Keycloak imports the realm).
@@ -49,7 +62,7 @@ Sign in with one of the seeded users:
 ## What's inside
 
 ```
-hackathon/
+project-baseline/
 ├── docker-compose.yml          # the 5 services
 ├── Makefile                    # up / down / logs / clean
 ├── frontend/                   # Vite + React + TS
@@ -75,7 +88,7 @@ hackathon/
 │   │   └── routers/{me,items}.py
 │   └── Dockerfile
 └── keycloak/
-    ├── realm-export.json       # the `hackathon` realm (clients, roles, users)
+    ├── realm-export.json       # the `baseline` realm (clients, roles, users)
     └── themes/diametral/       # the Diametral login + email theme
 ```
 
@@ -104,11 +117,14 @@ the **browser** URL, so the backend:
 
 ### Audience
 
-The `web` client has an audience mapper that adds `hackathon-api` to every
-access token; the backend requires it (`KEYCLOAK_AUDIENCE=hackathon-api`). Set
+The `web` client has an audience mapper that adds `baseline-api` to every
+access token; the backend requires it (`KEYCLOAK_AUDIENCE=baseline-api`). Set
 that env var to `""` to disable the audience check.
 
 ## Developing
+
+New here? [`CONTRIBUTING.md`](CONTRIBUTING.md) covers the hook setup, Make
+commands, testing, and the gotchas in one place.
 
 Both app containers hot-reload from bind mounts:
 
@@ -129,25 +145,43 @@ cd backend && python -m venv .venv && . .venv/bin/activate \
   && uvicorn app.main:app --reload
 ```
 
-## Common tasks
+## Build your first feature
 
-- **Re-import the realm** (after editing `realm-export.json`): the realm is only
-  imported when Keycloak's DB is empty. Wipe volumes and start fresh:
-  ```bash
-  make clean && make up      # docker compose down -v && up --build
+The `Item` resource is a complete reference slice — model → schema → router →
+page. Copy it. To add, say, a `Note`:
+
+- **Backend** — add a `Note` model to `app/models.py` and `NoteCreate`/`NoteOut`
+  schemas to `app/schemas.py`, copy `app/routers/items.py` → `notes.py` (swap the
+  names; every route already has `Depends(get_current_user)`), then register it in
+  `app/main.py`:
+  ```python
+  from .routers import items, me, notes
+  app.include_router(notes.router)
   ```
-- **Add an API route**: drop a router in `backend/app/routers/`, include it in
-  `main.py`, and protect it with `Depends(get_current_user)`.
-- **Add a page**: add a `pages/Foo.tsx`, then a line to `ROUTES`/`NAV` and a
-  `<Route>` in `frontend/src/App.tsx`.
-- **Require a role**: use `Depends(require_role("admin"))` on a route.
+- **Frontend** — copy `src/pages/Items.tsx` → `Notes.tsx` (adjust the fields and
+  the `/api/notes` path; `lib/api.ts` attaches the token), then add it to
+  `ROUTES`/`NAV` and a `<Route>` in `src/App.tsx`.
+- **Verify** — run `/smoke` in Claude Code, or hit `http://localhost:8000/docs`;
+  an endpoint called without a token returns `401`.
+
+A new model needs a fresh DB (`make clean && make up`) — see the Alembic note below.
+
+| You want to…          | Edit…                                                          |
+| --------------------- | -------------------------------------------------------------- |
+| Add an API route      | `backend/app/routers/` + register in `app/main.py`             |
+| Protect a route       | `Depends(get_current_user)` (or `require_role("admin")`)       |
+| Add a DB table        | `backend/app/models.py` (then `make clean && make up`)         |
+| Add a page            | `frontend/src/pages/` + `ROUTES`/`NAV`/`<Route>` in `App.tsx`  |
+| Call the API          | `frontend/src/lib/api.ts` (token-injecting fetch)              |
+| Re-import the realm   | edit `keycloak/realm-export.json`, then `make clean && make up`|
 
 ## Notes & next steps
 
 - Tables are created on startup via `Base.metadata.create_all` for zero-config
   convenience. Swap in **Alembic** once the schema starts to change.
 - The seeded passwords and `admin/admin` console login are for **local dev
-  only** — don't ship them.
+  only** — don't ship them. `frontend/.env` is committed on purpose (browser-facing
+  localhost config); real secrets must never go there.
 - The frontend consumes the design system from the public npm package
   `@diametral/design-system`; the Keycloak theme is vendored under
   `keycloak/themes/diametral/`.

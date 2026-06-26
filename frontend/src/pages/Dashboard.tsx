@@ -40,7 +40,7 @@ export default function Dashboard() {
     <>
       <PageHeader
         title="Dashboard"
-        subtitle="A Diametral-themed whiteapp on FastAPI + Keycloak + Postgres."
+        subtitle="A Diametral-themed starter on FastAPI + Keycloak + Postgres."
       />
 
       <Status
