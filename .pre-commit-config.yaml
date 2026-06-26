@@ -27,6 +27,13 @@ repos:
     hooks:
       - id: gitleaks
 
+  # Enforce Conventional Commits on the commit message (commit-msg stage).
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.1.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
   # --- Python (backend/) — auto-fix then format ---
   # Rule set configured here (not a ruff.toml) — pycodestyle, pyflakes, isort,
   # pyupgrade. Bugbear (B) is intentionally omitted: its B008 rule misfires on

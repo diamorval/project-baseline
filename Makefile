@@ -1,4 +1,4 @@
-.PHONY: help init up down logs build restart clean ps rename
+.PHONY: help init up down logs build restart clean ps rename test release
 .DEFAULT_GOAL := help
 
 help:          ## Show this help
@@ -25,6 +25,13 @@ restart:       ## Recreate containers
 
 ps:            ## Show running services
 	docker compose ps
+
+test:          ## Run the backend test suite (pytest) in a one-off container
+	docker compose run --rm --no-deps backend sh -c "pip install -q -r requirements-dev.txt && pytest"
+
+release:       ## Bump version, regenerate CHANGELOG, and tag (Conventional Commits)
+	@command -v cz >/dev/null || { echo "commitizen not found — install: uv tool install commitizen (or pipx install commitizen)"; exit 1; }
+	cz bump --changelog
 
 clean:         ## Stop and delete everything, including DB volumes (fresh realm import)
 	docker compose down -v

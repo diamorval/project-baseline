@@ -1,0 +1,115 @@
+# CI — the authoritative gate.
+#
+# pre-commit and pre-push run on each contributor's machine and can be skipped
+# with `git ... --no-verify`. This pipeline re-runs the SAME gates on
+# infrastructure nobody can bypass, so it — not the local hooks — is what
+# actually decides whether a change may merge. Keep it in sync with
+# .pre-commit-config.yaml: the jobs below replay the commit-stage hooks and the
+# pre-push typecheck/compile.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: lint · format · secrets (pre-commit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history so gitleaks can scan it
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+      - run: pip install pre-commit
+      # no-commit-to-branch is a local "don't commit straight to main" guard;
+      # it would fail on a push to main, so it's not a CI check.
+      - name: Run pre-commit hooks
+        run: SKIP=no-commit-to-branch pre-commit run --all-files --show-diff-on-failure
+
+  tests:
+    name: tests (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install backend deps
+        run: pip install -r requirements.txt -r requirements-dev.txt
+        working-directory: backend
+      - name: Run pytest
+        run: pytest
+        working-directory: backend
+
+  typecheck:
+    name: typecheck (frontend tsc · backend compile)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend deps
+        run: npm ci
+        working-directory: frontend
+      - name: Frontend typecheck (tsc -b)
+        run: npx tsc -b
+        working-directory: frontend
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Backend compile check
+        run: python -m compileall backend/app
+
+  commits:
+    name: commit messages (commitizen)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # need the PR's full commit range
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install commitizen
+      - name: Check PR commits follow Conventional Commits
+        # base_ref via env (not inlined into the command) to avoid injection.
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch --quiet origin "$BASE_REF"
+          cz check --rev-range "origin/$BASE_REF..HEAD"
+
+  audit:
+    name: dependency audit (advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true # advisory — a transitive CVE shouldn't block an unrelated PR
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python dependency audit
+        run: |
+          pip install pip-audit
+          pip-audit -r backend/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: npm audit
+        run: npm audit --audit-level=high
+        working-directory: frontend

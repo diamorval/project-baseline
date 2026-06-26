@@ -1,0 +1,15 @@
+# Commitizen — Conventional Commits + automated versioning.
+#   cz check   enforces the commit convention (local commit-msg hook + CI)
+#   cz bump    bumps the version, regenerates CHANGELOG.md, and tags (make release)
+# Publishing/deploying the bumped tag is CD — intentionally out of scope here.
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.0"
+tag_format = "v$version"
+update_changelog_on_bump = true
+major_version_zero = true
+# Keep every place that hard-codes the version in sync on each bump.
+version_files = [
+  "frontend/package.json:\"version\"",
+  "backend/app/main.py:version",
+]

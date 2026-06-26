@@ -17,7 +17,7 @@ After cloning, install the git hooks once — `.git/hooks/` isn't tracked, so ea
 contributor runs this themselves:
 
 ```bash
-pre-commit install --hook-type pre-commit --hook-type pre-push
+pre-commit install --hook-type pre-commit --hook-type pre-push --hook-type commit-msg
 ```
 
 Then bring the stack up:
@@ -62,12 +62,38 @@ pre-commit run --hook-stage pre-push --all-files # push-time gate
 > Direct commits to `main`/`master` are blocked by `no-commit-to-branch` — work
 > on a feature branch and open a PR.
 
+## Commits & versioning (Conventional Commits)
+
+Commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/)
+(`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, …). The `commit-msg` hook checks
+this locally and CI re-checks every PR's commits.
+
+This drives versioning: a maintainer cuts a release with
+
+```bash
+make release        # cz bump → version + CHANGELOG.md + git tag (needs commitizen)
+```
+
+which bumps the version (in `.cz.toml`, `frontend/package.json`, `backend/app/main.py`),
+regenerates `CHANGELOG.md`, and tags — all from the commit history. Publishing the
+tag (deploy / package release) is a separate CD step, intentionally not wired here.
+
 ## Testing your change
 
-Run the end-to-end smoke test against the running stack with **`/smoke`** in
-Claude Code (or follow the steps in `.claude/commands/smoke.md`): it mints a
-Keycloak token for `demo`, calls `/api/me` with and without it (expect `200` then
-`403`), and round-trips an item through `/api/items`.
+Run the backend unit tests (no running stack needed — they don't touch a DB):
+
+```bash
+make test                          # pytest in a one-off backend container
+# or locally: cd backend && pip install -r requirements.txt -r requirements-dev.txt && pytest
+```
+
+`backend/tests/` starts with a smoke suite (health endpoint, the auth gate);
+add cases there as you build. CI runs the same `pytest` on every push and PR.
+
+For an end-to-end check against the *running* stack, use **`/smoke`** in Claude
+Code (or follow `.claude/commands/smoke.md`): it mints a Keycloak token for
+`demo`, calls `/api/me` with and without it (expect `200` then `403`), and
+round-trips an item through `/api/items`.
 
 The README's **"Build your first feature"** section walks the `Item` reference
 slice (model → schema → router → page) you copy to add new resources.
