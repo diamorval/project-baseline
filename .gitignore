@@ -2,6 +2,10 @@
 node_modules/
 frontend/dist/
 *.log
+# tsc artifacts: incremental cache + emitted JS/decls from compiling vite.config.ts
+*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
 
 # Python
 __pycache__/

@@ -5,7 +5,7 @@
 
 ## Tech stack
 
-Vite 5 · React 18 · TypeScript 5 · react-router 6 · keycloak-js 26 ·
+Vite 7 · React 18 · TypeScript 5 · react-router 6 · keycloak-js 26 ·
 `@diametral/design-system` (Diametral DS). ESM (`"type": "module"`).
 
 ## Commands
