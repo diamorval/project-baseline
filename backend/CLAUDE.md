@@ -6,14 +6,15 @@
 ## Tech stack
 
 FastAPI 0.115 · SQLAlchemy 2.0 · pydantic 2 / pydantic-settings · python-jose
-(JWT) · psycopg2 · httpx · uvicorn. Python 3.12, no lockfile — pinned in
-`requirements.txt`.
+(JWT) · psycopg2 · httpx · uvicorn. Python 3.12, no lockfile — runtime pinned in
+`requirements.txt`, test-only deps (pytest) in `requirements-dev.txt`.
 
 ## Commands
 
 ```bash
 # Runs inside docker compose (see root Makefile); no local venv assumed.
 make up                       # starts backend at :8000 (uvicorn --reload)
+make test                     # pytest in a one-off container (backend/tests/)
 docker compose logs -f backend
 # Swagger: http://localhost:8000/docs
 ```
@@ -29,6 +30,8 @@ app/
   models.py       # SQLAlchemy models (create_all'd on startup, no Alembic)
   schemas.py      # pydantic request/response models
   routers/        # one APIRouter per resource (me, items)
+tests/            # pytest smoke suite (test_smoke.py) — DB-free, see "Tests"
+pytest.ini        # pythonpath=. + testpaths=tests
 ```
 
 ## Conventions & patterns
@@ -56,6 +59,15 @@ app/
 expiry + audience (`KEYCLOAK_AUDIENCE`, default `baseline-api`; `""` disables).
 This split is deliberate — the browser and the backend reach Keycloak by
 different hostnames but must agree on `iss`.
+
+## Tests
+
+`tests/` runs under pytest (`make test`, or `pytest` from `backend/`). The smoke
+suite is **DB-free on purpose**: `create_all` runs inside the FastAPI `lifespan`,
+and `TestClient(app)` used *without* a `with` block never fires it — so tests hit
+`/health` and the auth gate without a Postgres. The moment a test needs the DB,
+add a Postgres `service` to the CI `tests` job and use the TestClient as a
+context manager.
 
 ## Claude Code — relevant agents / commands / skills
 

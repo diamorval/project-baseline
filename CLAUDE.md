@@ -35,6 +35,8 @@ Diametral too.
   `app/routers/`.
 - `keycloak/` — `realm-export.json` (realm `baseline`: `web` client, roles,
   users) and `themes/diametral/` (vendored Diametral login/email theme).
+- **Per-module deep dives**: `backend/CLAUDE.md` and `frontend/CLAUDE.md` (the
+  dense guides for working inside each service).
 
 ## Auth — how it fits together
 
@@ -77,6 +79,24 @@ Diametral too.
 - **Model change**: edit `app/models.py`. Tables are `create_all`'d on startup
   (no Alembic), so a schema change only applies on a fresh DB — `make clean` to
   recreate app-db. Introduce Alembic before the schema matters.
+
+## Test, gates & releases
+
+- `make test` — backend pytest suite (one-off container; `backend/tests/`). CI
+  runs it on every push/PR.
+- **Git hooks** — after cloning, run `pre-commit install --hook-type pre-commit
+  --hook-type pre-push --hook-type commit-msg`. Commit-time: ruff + prettier +
+  gitleaks. Pre-push: backend byte-compile + `tsc -b`. Commit-msg: Conventional
+  Commits (commitizen). `no-commit-to-branch` blocks direct commits to `main`.
+- **CI** — `.github/workflows/ci.yml` (quality · tests · typecheck · commits ·
+  advisory audit) re-runs the local gates as the authoritative server check.
+- **Versioning** — `make release` (`cz bump`) sets the version across `.cz.toml`,
+  `frontend/package.json`, `backend/app/main.py`, regenerates `CHANGELOG.md`, and
+  tags — all from the commit history. Publishing the tag is CD (not wired).
+- **Env** — `make init` copies `.env.example` → root `.env` (gitignored);
+  `docker-compose.yml` reads it via `${VAR:-default}`, and `.envrc` (direnv)
+  loads it into your shell. `frontend/.env` (committed) still holds public
+  `VITE_*` only.
 
 ## Verify (smoke test) — see also `/smoke`
 
