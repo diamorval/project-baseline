@@ -123,6 +123,9 @@ that env var to `""` to disable the audience check.
 
 ## Developing
 
+New here? [`CONTRIBUTING.md`](CONTRIBUTING.md) covers the hook setup, Make
+commands, testing, and the gotchas in one place.
+
 Both app containers hot-reload from bind mounts:
 
 - **Frontend** — edit `frontend/src/**`; Vite HMR updates the browser.

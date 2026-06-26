@@ -3,7 +3,10 @@ import { keycloak } from "./keycloak";
 
 /** Thrown for any non-2xx response; carries the HTTP status. */
 export class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
     super(message);
     this.name = "ApiError";
   }
@@ -14,7 +17,10 @@ export class ApiError extends Error {
  * Refreshes the token if it expires within 30s; if that fails, sends the user
  * back to the login page.
  */
-export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
+export async function api<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
   try {
     await keycloak.updateToken(30);
   } catch {

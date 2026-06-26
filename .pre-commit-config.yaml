@@ -1,0 +1,73 @@
+# Commit-time hooks (fast, staged-files only). Push-time gates live in the
+# `pre-push` stage appended by setup-prepush. Teammates run `pre-commit install`
+# once after cloning (.git/hooks is not tracked).
+minimum_pre_commit_version: "3.5.0"
+# Binary/vendored assets formatters shouldn't touch.
+exclude: '\.(png|woff2?|otf|ico)$'
+
+repos:
+  # --- Baseline hygiene + secret detection (always) ---
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-json
+        exclude: ^frontend/tsconfig.*\.json$
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+      - id: detect-private-key
+      - id: no-commit-to-branch
+        args: ["--branch", "main", "--branch", "master"]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+
+  # --- Python (backend/) — auto-fix then format ---
+  # Rule set configured here (not a ruff.toml) — pycodestyle, pyflakes, isort,
+  # pyupgrade. Bugbear (B) is intentionally omitted: its B008 rule misfires on
+  # FastAPI's idiomatic `= Depends(...)` defaults.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+        args: ["--fix", "--select", "E,W,F,I,UP", "--line-length", "100"]
+        files: ^backend/.*\.py$
+      - id: ruff-format
+        args: ["--line-length", "100"]
+        files: ^backend/.*\.py$
+
+  # --- Web (frontend/) — Prettier on TS/CSS/JSON/MD ---
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: v3.4.2
+    hooks:
+      - id: prettier
+        files: ^frontend/.*\.(ts|tsx|css|json|md)$
+
+  # ---- pre-push gate (heavier, whole-repo; runs once before `git push`) ----
+  - repo: local
+    hooks:
+      # Backend: byte-compile every module — catches syntax/import-time errors
+      # without needing the stack up. No third-party deps required.
+      - id: backend-compile
+        name: backend compile check (py)
+        entry: python3 -m compileall -q backend/app
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      # Frontend: full project typecheck (same `tsc -b` the build runs).
+      # Guarded — skips cleanly when deps aren't installed (docker-based dev),
+      # so it gates real type errors without a false block on a fresh clone.
+      - id: frontend-typecheck
+        name: frontend typecheck (tsc -b)
+        entry: scripts/prepush-frontend-typecheck.sh
+        language: script
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]

@@ -37,7 +37,7 @@ keycloak
         <BrowserRouter>
           <App />
         </BrowserRouter>
-      </React.StrictMode>
+      </React.StrictMode>,
     );
   })
   .catch(() => {
@@ -45,9 +45,10 @@ keycloak
       <div style={{ padding: 40, fontFamily: "Geist, sans-serif" }}>
         <h1>Keycloak unavailable</h1>
         <p>
-          Could not reach Keycloak at <code>{keycloak.authServerUrl}</code>. Make
-          sure the stack is up (<code>docker compose up</code>) and try again.
+          Could not reach Keycloak at <code>{keycloak.authServerUrl}</code>.
+          Make sure the stack is up (<code>docker compose up</code>) and try
+          again.
         </p>
-      </div>
+      </div>,
     );
   });
