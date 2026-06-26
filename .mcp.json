@@ -8,7 +8,7 @@
       "command": "uvx",
       "args": ["postgres-mcp", "--access-mode=restricted"],
       "env": {
-        "DATABASE_URI": "${BASELINE_DB_URL}"
+        "DATABASE_URI": "${APP_DB_URL}"
       }
     }
   }

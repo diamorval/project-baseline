@@ -11,9 +11,15 @@ venv/
 .pytest_cache/
 .mypy_cache/
 
-# Env overrides (the committed frontend/.env holds only public localhost URLs)
+# Env: the root .env is the generated local config (cp from .env.example); the
+# committed frontend/.env holds only public localhost URLs. /.env is root-anchored
+# so it does NOT match frontend/.env.
+/.env
 .env.local
 *.env.local
+
+# direnv
+.direnv/
 
 # Claude Code — personal/local settings (the shared .claude/settings.json IS committed)
 .claude/settings.local.json

@@ -84,7 +84,53 @@ bold "Renaming…"
 bash scripts/rename.sh "$NAME"
 
 # ---------------------------------------------------------------------------
-# 5. Fresh git history (optional)
+# 5. Local environment file (.env) + direnv
+# ---------------------------------------------------------------------------
+echo
+bold "Setting up environment…"
+if [ -f .env ]; then
+  info "✓ .env already exists (left as-is)"
+else
+  cp .env.example .env
+  info "✓ created .env from .env.example"
+fi
+# Install direnv if missing (best-effort, platform-aware), then `direnv allow`.
+if ! command -v direnv >/dev/null 2>&1; then
+  if confirm "direnv not found — install it now (to auto-load .env)?"; then
+    if command -v brew >/dev/null 2>&1; then
+      brew install direnv
+    elif command -v apt-get >/dev/null 2>&1; then
+      sudo apt-get update -qq && sudo apt-get install -y direnv
+    elif command -v dnf >/dev/null 2>&1; then
+      sudo dnf install -y direnv
+    elif command -v pacman >/dev/null 2>&1; then
+      sudo pacman -S --noconfirm direnv
+    else
+      # Fallback to the official installer (installs into ./bin by default).
+      curl -sfL https://direnv.net/install.sh | bash || true
+    fi
+  fi
+fi
+
+if command -v direnv >/dev/null 2>&1; then
+  if direnv allow . >/dev/null 2>&1; then
+    info "✓ direnv allowed — .env auto-loads when you cd into this directory"
+  fi
+  # The binary alone isn't enough — direnv needs a one-time shell hook to fire.
+  if ! grep -qrs 'direnv hook' "$HOME/.bashrc" "$HOME/.zshrc" \
+       "$HOME/.config/fish/config.fish" 2>/dev/null; then
+    info "  one-time shell hook (pick your shell):"
+    info "    bash → echo 'eval \"\$(direnv hook bash)\"' >> ~/.bashrc"
+    info "    zsh  → echo 'eval \"\$(direnv hook zsh)\"'  >> ~/.zshrc"
+    info "    fish → echo 'direnv hook fish | source' >> ~/.config/fish/config.fish"
+  fi
+else
+  info "direnv not installed — optional; .env still works for 'docker compose up',"
+  info "  which reads it directly. See https://direnv.net to set up shell auto-load."
+fi
+
+# ---------------------------------------------------------------------------
+# 6. Fresh git history (optional)
 # ---------------------------------------------------------------------------
 echo
 if confirm "Reset git history to a single 'Initial commit'?"; then
@@ -98,7 +144,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 6. Boot (optional)
+# 7. Boot (optional)
 # ---------------------------------------------------------------------------
 echo
 if confirm "Build and start the stack now (make clean && make up)?"; then
