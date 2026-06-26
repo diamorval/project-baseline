@@ -105,7 +105,7 @@ TOKEN=$(curl -s -X POST http://localhost:8080/realms/baseline/protocol/openid-co
   -d grant_type=password -d client_id=web -d username=demo -d password=demo \
   | python3 -c 'import sys,json;print(json.load(sys.stdin)["access_token"])')
 curl -s http://localhost:8000/api/me -H "Authorization: Bearer $TOKEN"    # 200 + user JSON
-curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8000/api/me      # 403 (no token)
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8000/api/me      # 401 (no token)
 ```
 
 ## Gotchas

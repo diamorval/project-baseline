@@ -9,7 +9,7 @@ with `make up` if needed):
    (password grant) at `http://localhost:8080/realms/baseline`.
 2. Decode and report the token's `iss`, `aud`, and `realm_access.roles`.
 3. `GET http://localhost:8000/api/me` **with** the token → expect `200` + the
-   user JSON; **without** the token → expect `403`.
+   user JSON; **without** the token → expect `401`.
 4. `POST` a throwaway item to `/api/items` then `GET /api/items` → expect the
    item to come back, owner-scoped to the demo user.
 

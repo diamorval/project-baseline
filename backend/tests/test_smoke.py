@@ -20,9 +20,9 @@ def test_health_ok():
 
 
 def test_me_requires_auth():
-    """A protected route returns 403 when called without a bearer token."""
+    """A protected route returns 401 when called without a bearer token."""
     resp = client.get("/api/me")
-    assert resp.status_code == 403
+    assert resp.status_code == 401
 
 
 def test_app_metadata():

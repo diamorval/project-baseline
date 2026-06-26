@@ -5,7 +5,7 @@
 
 ## Tech stack
 
-FastAPI 0.115 · SQLAlchemy 2.0 · pydantic 2 / pydantic-settings · python-jose
+FastAPI 0.138 · SQLAlchemy 2.0 · pydantic 2 / pydantic-settings · python-jose
 (JWT) · psycopg2 · httpx · uvicorn. Python 3.12, no lockfile — runtime pinned in
 `requirements.txt`, test-only deps (pytest) in `requirements-dev.txt`.
 

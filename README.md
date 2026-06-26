@@ -162,7 +162,7 @@ page. Copy it. To add, say, a `Note`:
   the `/api/notes` path; `lib/api.ts` attaches the token), then add it to
   `ROUTES`/`NAV` and a `<Route>` in `src/App.tsx`.
 - **Verify** — run `/smoke` in Claude Code, or hit `http://localhost:8000/docs`;
-  an endpoint called without a token returns `403`.
+  an endpoint called without a token returns `401`.
 
 A new model needs a fresh DB (`make clean && make up`) — see the Alembic note below.
 
