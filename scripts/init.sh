@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 #
-# Initialise a personalised project from this base.
+# Scaffold a personalised project from this base.
 #
-# Runs the full first-time setup workflow:
-#   1. check prerequisites (docker + compose)
-#   2. ask for a project name
-#   3. rename the project everywhere it must stay in sync (scripts/rename.sh)
-#   4. optionally reset git history to a clean initial commit
-#   5. optionally build + start the stack (make clean && make up)
+#
+# Workflow:
+#   1. check prerequisites (docker + compose + rsync)
+#   2. ask for a project name (and confirm the destination folder)
+#   3. copy the template into <dest> (clean — no .git, node_modules, caches, .env)
+#   4. rename the copy everywhere it must stay in sync (scripts/rename.sh)
+#   5. set up the copy's .env (+ direnv) and a fresh git history
+#   6. optionally open the new folder in your editor (cursor / code / …)
+#   7. optionally build + start the stack from the new folder
 #
 #   usage:  make init      (or: bash scripts/init.sh)
-#
-# Interactive by design — naming is part of init. To rename non-interactively
-# (e.g. in a script), use scripts/rename.sh directly.
 #
 set -euo pipefail
 
@@ -42,18 +42,14 @@ if ! docker compose version >/dev/null 2>&1; then
   echo "  ✗ 'docker compose' not available (need Compose v2)." >&2
   exit 1
 fi
-info "✓ docker + docker compose"
-
-# ---------------------------------------------------------------------------
-# 2. Already initialised?
-# ---------------------------------------------------------------------------
-if ! git grep -qI -e baseline -e Baseline -- . ':!scripts/' >/dev/null 2>&1; then
-  bold "This project looks already initialised (no 'baseline' references left)."
-  confirm "Rename it again anyway?" || { info "Nothing to do."; exit 0; }
+if ! command -v rsync >/dev/null 2>&1; then
+  echo "  ✗ rsync not found — needed to copy the template (install: brew install rsync / apt-get install rsync)." >&2
+  exit 1
 fi
+info "✓ docker + docker compose + rsync"
 
 # ---------------------------------------------------------------------------
-# 3. Project name
+# 2. Project name + destination folder
 # ---------------------------------------------------------------------------
 if [ ! -t 0 ]; then
   echo "error: 'make init' is interactive — run it in a terminal." >&2
@@ -68,8 +64,30 @@ if [ -z "$SLUG" ]; then
   exit 1
 fi
 
+# Default destination is a sibling folder next to this base, named after the slug.
+DEFAULT_DEST="$(cd .. && pwd)/$SLUG"
+read -r -p "Destination folder [$DEFAULT_DEST]: " DEST
+DEST="${DEST:-$DEFAULT_DEST}"
+# Normalise to an absolute path (the parent must already exist).
+DEST_PARENT="$(cd "$(dirname "$DEST")" 2>/dev/null && pwd || true)"
+if [ -z "$DEST_PARENT" ]; then
+  echo "error: parent directory of '$DEST' does not exist." >&2
+  exit 1
+fi
+DEST="$DEST_PARENT/$(basename "$DEST")"
+
+if [ "$DEST" = "$ROOT" ]; then
+  echo "error: destination must be a new folder, not the template itself." >&2
+  exit 1
+fi
+if [ -e "$DEST" ]; then
+  echo "error: '$DEST' already exists — pick a folder that doesn't exist yet." >&2
+  exit 1
+fi
+
 echo
-bold "About to configure:"
+bold "About to scaffold a new project:"
+info "destination:                $DEST"
 info "slug (realm, env, package): $SLUG"
 info "audience:                   $SLUG-api"
 info "brand (UI):                 $TITLE"
@@ -77,10 +95,48 @@ echo
 if ! confirm "Proceed?"; then info "Aborted."; exit 0; fi
 
 # ---------------------------------------------------------------------------
-# 4. Rename everything
+# 3. Copy the template into the new folder (clean)
 # ---------------------------------------------------------------------------
 echo
+bold "Copying template → $DEST …"
+# Exclude everything regenerable or machine-local: VCS, deps, caches, build
+# artifacts, the local .env, and personal Claude settings. The copy is a clean
+# checkout you then personalise.
+rsync -a \
+  --exclude '.git/' \
+  --exclude 'node_modules/' \
+  --exclude '.venv/' \
+  --exclude 'venv/' \
+  --exclude '__pycache__/' \
+  --exclude '*.py[cod]' \
+  --exclude '.pytest_cache/' \
+  --exclude '.mypy_cache/' \
+  --exclude '.ruff_cache/' \
+  --exclude '.direnv/' \
+  --exclude 'frontend/dist/' \
+  --exclude '*.tsbuildinfo' \
+  --exclude 'frontend/vite.config.js' \
+  --exclude 'frontend/vite.config.d.ts' \
+  --exclude '/.env' \
+  --exclude '.env.local' \
+  --exclude '*.env.local' \
+  --exclude '.claude/settings.local.json' \
+  --exclude '.DS_Store' \
+  "$ROOT/" "$DEST/"
+info "✓ copied (template left untouched)"
+
+# Everything below operates on the COPY.
+cd "$DEST"
+
+# ---------------------------------------------------------------------------
+# 4. Rename everything in the copy
+# ---------------------------------------------------------------------------
+# rename.sh finds files with `git grep`, so stage the copy in a throwaway git
+# index first. History is reset cleanly in step 6 regardless.
+echo
 bold "Renaming…"
+git init -q
+git add -A
 bash scripts/rename.sh "$NAME"
 
 # ---------------------------------------------------------------------------
@@ -88,12 +144,8 @@ bash scripts/rename.sh "$NAME"
 # ---------------------------------------------------------------------------
 echo
 bold "Setting up environment…"
-if [ -f .env ]; then
-  info "✓ .env already exists (left as-is)"
-else
-  cp .env.example .env
-  info "✓ created .env from .env.example"
-fi
+cp .env.example .env
+info "✓ created .env from .env.example"
 # Install direnv if missing (best-effort, platform-aware), then `direnv allow`.
 if ! command -v direnv >/dev/null 2>&1; then
   if confirm "direnv not found — install it now (to auto-load .env)?"; then
@@ -130,31 +182,79 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 6. Fresh git history (optional)
+# 6. Fresh git history for the new project
 # ---------------------------------------------------------------------------
 echo
-if confirm "Reset git history to a single 'Initial commit'?"; then
-  rm -rf .git
-  git init -q
-  git add -A
-  git commit -qm "Initial commit"
-  info "✓ fresh git history"
+rm -rf .git
+git init -q
+git add -A
+git commit --no-verify -qm "Initial commit"
+info "✓ fresh git history"
+
+# ---------------------------------------------------------------------------
+# 7. Open in an editor (optional)
+# ---------------------------------------------------------------------------
+echo
+# Friendly label for an editor launcher.
+editor_name() {
+  case "$1" in
+    cursor)   echo "Cursor" ;;
+    code)     echo "VS Code" ;;
+    codium)   echo "VSCodium" ;;
+    windsurf) echo "Windsurf" ;;
+    zed)      echo "Zed" ;;
+    subl)     echo "Sublime Text" ;;
+    idea)     echo "IntelliJ IDEA" ;;
+    webstorm) echo "WebStorm" ;;
+    *)        echo "$1" ;;
+  esac
+}
+
+# Collect every editor launcher that's actually on PATH (preference order).
+FOUND_EDITORS=()
+for e in cursor code codium windsurf zed subl idea webstorm; do
+  command -v "$e" >/dev/null 2>&1 && FOUND_EDITORS+=("$e")
+done
+
+if [ "${#FOUND_EDITORS[@]}" -eq 0 ]; then
+  info "No editor launcher found on PATH (cursor/code/zed/…) — open $DEST manually."
 else
-  info "kept existing git history (changes are unstaged — commit when ready)"
+  bold "Open the new project in an editor?"
+  i=1
+  for e in "${FOUND_EDITORS[@]}"; do
+    info "$i) $(editor_name "$e")"
+    i=$((i + 1))
+  done
+  info "n) don't open"
+  read -r -p "Choose [1]: " CHOICE
+  CHOICE="${CHOICE:-1}"
+  if [[ "$CHOICE" =~ ^[0-9]+$ ]] && [ "$CHOICE" -ge 1 ] && [ "$CHOICE" -le "${#FOUND_EDITORS[@]}" ]; then
+    PICK="${FOUND_EDITORS[$((CHOICE - 1))]}"
+    "$PICK" "$DEST" >/dev/null 2>&1 \
+      && info "✓ opened in $(editor_name "$PICK")" \
+      || info "couldn't launch $(editor_name "$PICK") — open $DEST manually."
+  else
+    info "not opening — $DEST is ready when you are."
+  fi
 fi
 
 # ---------------------------------------------------------------------------
-# 7. Boot (optional)
+# 8. Boot (optional)
 # ---------------------------------------------------------------------------
 echo
-if confirm "Build and start the stack now (make clean && make up)?"; then
+if confirm "Build and start the stack now from $DEST (make clean && make up)?"; then
   make clean
   make up
 else
   cat <<EOF
 
-Done. When you're ready to run it:
+Done. Your new project lives at:
 
+  $DEST
+
+Get it running:
+
+  cd "$DEST"
   make clean && make up      # wipe DB volumes so the '$SLUG' realm imports
 
 Then open http://localhost:5173 and sign in as demo/demo.

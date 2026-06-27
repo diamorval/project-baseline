@@ -93,7 +93,8 @@ Diametral too.
 - **Versioning** — `make release` (`cz bump`) sets the version across `.cz.toml`,
   `frontend/package.json`, `backend/app/main.py`, regenerates `CHANGELOG.md`, and
   tags — all from the commit history. Publishing the tag is CD (not wired).
-- **Env** — `make init` copies `.env.example` → root `.env` (gitignored);
+- **Env** — `make init` scaffolds a personalised copy in a new folder and there
+  copies `.env.example` → root `.env` (gitignored);
   `docker-compose.yml` reads it via `${VAR:-default}`, and `.envrc` (direnv)
   loads it into your shell. `frontend/.env` (committed) still holds public
   `VITE_*` only.

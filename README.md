@@ -26,15 +26,16 @@ nothing project-specific baked in. Clone it, `make init`, and start building.
 
 ## Quick start
 
-First, personalise the project — `make init` checks prerequisites, renames
-everything to your project, optionally resets git history, and offers to boot
-the stack:
+First, scaffold your project — `make init` checks prerequisites, asks for a
+name, **copies this base into a new sibling folder**, renames everything in the
+copy, gives it a fresh git history, and offers to boot the stack. This base
+stays pristine, so you can reuse it for the next project:
 
 ```bash
-make init                      # asks for a name, renames everything, offers to boot
+make init                      # asks for a name + folder, copies & renames, offers to boot
 ```
 
-Already happy with the defaults, or coming back later? Just start it:
+Already inside a personalised copy, or coming back later? Just start it:
 
 ```bash
 make up                        # or: docker compose up --build
