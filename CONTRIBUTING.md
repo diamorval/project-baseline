@@ -35,7 +35,7 @@ make up            # build + start everything; first boot ~1–2 min (realm impo
 | `make clean`  | Stop **and wipe** DB volumes (required to re-import the realm)     |
 | `make logs`   | Tail logs for all services                                        |
 | `make restart`| Recreate containers                                               |
-| `make init`   | Personalise a fresh fork (rename, optional git reset)             |
+| `make init`   | Scaffold a personalised copy into a new folder (keeps this base pristine) |
 
 Ports: frontend `:5173`, backend `:8000` (`/docs` = Swagger), Keycloak `:8080`
 (admin `admin`/`admin`), app-db `:5432`. Both app containers hot-reload from bind

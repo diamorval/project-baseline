@@ -5,7 +5,7 @@ help:          ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
 
-init:          ## First-time setup: personalise the project interactively, then optionally boot it
+init:          ## Scaffold a personalised copy into a new folder (keeps this base pristine)
 	bash scripts/init.sh
 
 up:            ## Build (if needed) and start the whole stack
