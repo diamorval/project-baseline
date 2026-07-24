@@ -5,5 +5,5 @@ pydantic-settings==2.14.2
 SQLAlchemy==2.0.51
 psycopg2-binary==2.9.12
 python-jose[cryptography]==3.5.0
-pyasn1==0.6.3
+pyasn1==0.6.4
 httpx==0.28.1
